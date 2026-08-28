@@ -1,0 +1,42 @@
+https://arxiv.org/pdf/1503.02531
+
+Distilling the Knowledge in a Neural Network
+
+The problem with ensembles
+- Combining many models usually improves performance.
+- But running 10 to 20 or more models at inference time is vry expensive.
+- So the paper basically asks if we can compress the knowledge of an ensemble into one smaller model.
+
+Also, the author says that knowledge can be viewed as a mapping between input to ouputs.
+So, a student model doesnt need the teachers architecture or paramters, it can learn the teachers behaviour.
+
+In this paper, soft targets is the core idea.
+Normal labels : cats = 1, all others = 0
+A teachers produces something like cat = 0.7, dog = 0.2 etc
+So small probabilities contain more information about which classes considers similar.
+
+The student learns the teacher's generalization
+- This is deeper than simply copying predictions.
+- The teacher's output distribution captures how it tends to make mistakes.
+- The student therefore learns some of the teacher's learned structure/generalization behavior.
+
+Temparature also plays an important role.
+- Normal softmax has T = 1.
+- Increasing T makes the PD softer.
+- IT exposes relationship between classes.
+
+Using both Soft and hard targets.
+- The students learns from the teachers soft predictions.
+- Its own hard targets.
+
+Temperature isn't simply "higher is better"
+- When the student has enough capacity, a broad range of temperatures can work.
+- When the student is much smaller, intermediate temperatures can work substantially better.
+- In their MNIST experiment, a 30-unit-per-layer student performed best around T=2.5–4.
+
+A small model can recover surprisingly much of a large model's knowledge
+MNIST:
+- Large model: 67 errors
+- Small model trained normally: 146 errors
+- Small model distilled from teacher: 74 errors
+

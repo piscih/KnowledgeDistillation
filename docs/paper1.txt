@@ -1,0 +1,25 @@
+Paper : 
+Distilling the Knowledge in a Neural Network
+
+Link : 
+https://arxiv.org/pdf/1503.02531
+
+Main points :
+1. Soft targets contain more information than hard labels.
+2. A large teacher/ensemble can transfer its learned behavior to a smaller 
+student through those soft targets.
+3. Temperature is what makes the hidden class relationships in the teacher's 
+predictions visible to the student.
+
+Summary :
+
+Hinton et al. (2015) introduced knowledge distillation as a framework for transferring 
+knowledge from a high-capacity teacher model to a more compact student model. 
+The approach trains the student using the teacher’s soft output distributions, 
+which encode inter-class relationships and information about the teacher’s predictive 
+uncertainty that is not captured by the hard labels alone. Also a temperature parameter is used to 
+smoothen the output distribution and expose this additional information during the training phase.
+The authors shows that distilled models can approach the performance of larger models and 
+ensembles while substantially reducing inference-time computational costs. 
+The study further demonstrates the applicability of distillation to speech recognition 
+and large-scale classification through the use of specific specialized student models.
