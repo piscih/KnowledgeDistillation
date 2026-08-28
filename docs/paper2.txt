@@ -1,0 +1,31 @@
+Paper : DistilBERT, a distilled version of BERT: smaller,
+faster, cheaper and lighter
+
+Link :
+https://arxiv.org/pdf/1910.01108
+
+Main points :
+1. Bert is the teacher and DistilBERT is the student.
+2. Uses knowledge distillation during pre-training.
+3. It reduces BERT's 12 transformer layer to 6 layers.
+4. Student learns from both BERT's prediction and also internal representations.
+5. It uses three losses : masked language modelling, distillation loss, cosine embedding loss.
+6. It achieves about 97 per of the BERT's performance while being 40 per smaller and 60 per faster.
+7. So it shows knowledge distillation can produce more compact general puprpose lanaguge models.
+
+
+Summary :
+Sanh et al. (2019) introduced DistilBERT, a compact version of 
+BERT designed to reduce the computational and memory requirements 
+of large pretrained language models while retaining most of their 
+language understanding capabilities. Unlike earlier approaches that 
+primarily applied knowledge distillation to task-specific models, 
+DistilBERT performs distillation during the pre-training stage. 
+The student model is trained using a combination of language 
+modeling, knowledge distillation, and cosine-distance losses, 
+enabling it to learn both linguistic representations and also the 
+information encoded in the teacher model. DistilBERT reduces 
+BERT’s size by approximately 40% and achieves around 97% of its 
+language understanding performance while being approximately 60% 
+faster, which demonstrates the effectiveness of knowledge distillation 
+for creating efficient Transformer-based models.
