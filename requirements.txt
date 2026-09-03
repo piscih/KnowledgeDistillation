@@ -1,0 +1,20 @@
+# Deep Learning
+torch
+
+# Hugging Face
+transformers
+datasets
+tokenizers
+
+# Data Processing
+numpy
+pandas
+
+# Evaluation
+scikit-learn
+
+# Visualization
+matplotlib
+
+# Utilities
+tqdm
