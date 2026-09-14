@@ -1,0 +1,32 @@
+{
+  "model": "./models/BiLSTM/bilstm_student.pt",
+  "dataset": "fancyzhx/ag_news",
+  "test_samples": 7600,
+  "accuracy": 0.9085526315789474,
+  "macro_precision": 0.9080659140205718,
+  "macro_recall": 0.9085526315789474,
+  "macro_f1": 0.9081266554710279,
+  "parameters": 24837496,
+  "per_class": {
+    "World": {
+      "precision": 0.911625460284061,
+      "recall": 0.9121052631578948,
+      "f1": 0.9118652986056301
+    },
+    "Sports": {
+      "precision": 0.9413845376452754,
+      "recall": 0.9805263157894737,
+      "f1": 0.9605568445475638
+    },
+    "Business": {
+      "precision": 0.8960612691466083,
+      "recall": 0.8621052631578947,
+      "f1": 0.878755364806867
+    },
+    "Sci/Tech": {
+      "precision": 0.8831923890063424,
+      "recall": 0.8794736842105263,
+      "f1": 0.8813291139240507
+    }
+  }
+}
