@@ -1,0 +1,99 @@
+(kd-env) (base) harshithahonnappa@Harshithas-MacBook-Air KnowledgeDistillation % python training/BiLSTM/train.py 
+Using device: mps
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+
+Original dataset:
+DatasetDict({
+    train: Dataset({
+        features: ['text', 'label'],
+        num_rows: 120000
+    })
+    test: Dataset({
+        features: ['text', 'label'],
+        num_rows: 7600
+    })
+})
+
+Dataset sizes:
+Training: 108000
+Validation: 12000
+Test: 7600
+
+Building vocabulary...
+Vocabulary size: 73719
+
+BiLSTM model created!
+Number of parameters: 24837496
+
+Starting BiLSTM training...
+
+Epoch 1/10
+Train Loss: 0.4257
+Train Accuracy: 0.8476
+Validation Loss: 0.2973
+Validation Accuracy: 0.8999
+------------------------------------------------------------
+Best model saved!
+Epoch 2/10
+Train Loss: 0.2298
+Train Accuracy: 0.9222
+Validation Loss: 0.2565
+Validation Accuracy: 0.9103
+------------------------------------------------------------
+Best model saved!
+Epoch 3/10
+Train Loss: 0.1718
+Train Accuracy: 0.9412
+Validation Loss: 0.2479
+Validation Accuracy: 0.9166
+------------------------------------------------------------
+Best model saved!
+Epoch 4/10
+Train Loss: 0.1363
+Train Accuracy: 0.9529
+Validation Loss: 0.2617
+Validation Accuracy: 0.9167
+------------------------------------------------------------
+Best model saved!
+Epoch 5/10
+Train Loss: 0.1092
+Train Accuracy: 0.9619
+Validation Loss: 0.2682
+Validation Accuracy: 0.9165
+------------------------------------------------------------
+Epoch 6/10
+Train Loss: 0.0888
+Train Accuracy: 0.9688
+Validation Loss: 0.3055
+Validation Accuracy: 0.9153
+------------------------------------------------------------
+Epoch 7/10
+Train Loss: 0.0738
+Train Accuracy: 0.9740
+Validation Loss: 0.2924
+Validation Accuracy: 0.9182
+------------------------------------------------------------
+Best model saved!
+Epoch 8/10
+Train Loss: 0.0619
+Train Accuracy: 0.9781
+Validation Loss: 0.3215
+Validation Accuracy: 0.9138
+------------------------------------------------------------
+Epoch 9/10
+Train Loss: 0.0565
+Train Accuracy: 0.9801
+Validation Loss: 0.3520
+Validation Accuracy: 0.9093
+------------------------------------------------------------
+Epoch 10/10
+Train Loss: 0.0516
+Train Accuracy: 0.9824
+Validation Loss: 0.3383
+Validation Accuracy: 0.9136
+------------------------------------------------------------
+
+Training complete!
+Best validation accuracy: 0.9181666666666667
+Model saved to: ./models/BiLSTM/bilstm_student.pt
+(kd-env) (base) harshithahonnappa@Harshithas-MacBook-Air KnowledgeDistillation % 
