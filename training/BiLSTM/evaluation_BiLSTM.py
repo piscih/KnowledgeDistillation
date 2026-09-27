@@ -1,3 +1,24 @@
+"""
+BiLSTM Baseline Evaluation
+
+This file evaluates the trained baseline BiLSTM classifier on the
+untouched AG News test set.
+
+The same 90/10 training split and random seed used during training
+are recreated so that the vocabulary can be rebuilt consistently.
+The vocabulary is constructed only from the training data to avoid
+data leakage.
+
+The saved BiLSTM model is loaded and evaluated using accuracy,
+macro-averaged precision, recall, F1 score, and per-class metrics.
+A confusion matrix is also generated to visualize the classification
+performance across the four AG News categories.
+
+The evaluation results are saved as a JSON file and the confusion
+matrix is saved as an image for later comparison with the BERT
+teacher and Knowledge Distillation models.
+"""
+
 import torch
 from torch.utils.data import DataLoader
 from datasets import load_dataset
@@ -15,9 +36,6 @@ from model import BiLSTMClassifier
 import matplotlib.pyplot as plt 
 
 
-# ============================================================
-# CONFIGURATION
-# ============================================================
 
 BATCH_SIZE = 64
 MIN_FREQ = 2
@@ -32,10 +50,6 @@ NUM_CLASSES = 4
 DROPOUT = 0.3
 
 
-# ============================================================
-# DEVICE
-# ============================================================
-
 def get_device():
 
     if torch.backends.mps.is_available():
@@ -47,26 +61,14 @@ def get_device():
     else:
         return torch.device("cpu")
 
-
-# ============================================================
-# MAIN EVALUATION
-# ============================================================
-
 def main():
 
     device = get_device()
 
     print("Using device:", device)
-
-    # --------------------------------------------------------
-    # 1. Load AG News dataset
-    # --------------------------------------------------------
-
-    print("\nLoading AG News dataset...")
+    print("\nLoading AG News dataset")
 
     dataset = load_dataset("fancyzhx/ag_news")
-
-    # Same split used during training
     split_dataset = dataset["train"].train_test_split(
         test_size=0.1,
         seed=42
@@ -79,18 +81,11 @@ def main():
     print("Training:", len(train_data))
     print("Test:", len(test_data))
 
-    # --------------------------------------------------------
-    # 2. Rebuild vocabulary
-    # --------------------------------------------------------
-
-    print("\nBuilding vocabulary...")
+    print("\nBuilding vocabulary")
 
     vocabulary = Vocabulary(
         min_freq=MIN_FREQ
     )
-
-    # IMPORTANT:
-    # Vocabulary must be built only from training data.
     vocabulary.build(
         train_data["text"]
     )
@@ -99,10 +94,6 @@ def main():
         "Vocabulary size:",
         len(vocabulary)
     )
-
-    # --------------------------------------------------------
-    # 3. Create test dataset
-    # --------------------------------------------------------
 
     test_dataset = AGNewsDataset(
         test_data,
@@ -116,10 +107,6 @@ def main():
         collate_fn=collate_fn
     )
 
-    # --------------------------------------------------------
-    # 4. Create model
-    # --------------------------------------------------------
-
     model = BiLSTMClassifier(
         vocab_size=len(vocabulary),
         embedding_dim=EMBEDDING_DIM,
@@ -129,11 +116,7 @@ def main():
         dropout=DROPOUT,
     )
 
-    # --------------------------------------------------------
-    # 5. Load trained model
-    # --------------------------------------------------------
-
-    print("\nLoading trained model...")
+    print("\nLoading trained model")
 
     checkpoint = torch.load(
         MODEL_PATH,
@@ -150,10 +133,6 @@ def main():
     model.eval()
 
     print("Model loaded successfully.")
-
-    # --------------------------------------------------------
-    # 6. Count parameters
-    # --------------------------------------------------------
 
     total_parameters = sum(
         parameter.numel()
@@ -177,14 +156,10 @@ def main():
         f"{trainable_parameters:,}"
     )
 
-    # --------------------------------------------------------
-    # 7. Run inference
-    # --------------------------------------------------------
-
     all_predictions = []
     all_labels = []
 
-    print("\nRunning evaluation...")
+    print("\nRunning evaluation")
 
     with torch.no_grad():
 
@@ -214,11 +189,6 @@ def main():
                 labels.cpu().tolist()
             )
 
-
-    # --------------------------------------------------------
-    # 10. Calculate metrics
-    # --------------------------------------------------------
-
     accuracy = accuracy_score(
         all_labels,
         all_predictions
@@ -233,7 +203,6 @@ def main():
         )
     )
 
-    # Per-class metrics
     class_precision, class_recall, class_f1, class_support = (
         precision_recall_fscore_support(
             all_labels,
@@ -259,11 +228,6 @@ def main():
             "recall": float(class_recall[i]),
             "f1": float(class_f1[i]),
         }
-
-    # --------------------------------------------------------
-    # 11. Create results dictionary
-    # --------------------------------------------------------
-
     results = {
 
         "model": MODEL_PATH,
@@ -285,10 +249,6 @@ def main():
         "per_class": per_class,
     }
 
-    # --------------------------------------------------------
-    # 12. Save JSON
-    # --------------------------------------------------------
-
     import os
 
     os.makedirs(
@@ -307,10 +267,6 @@ def main():
             indent=2
         )
 
-    # --------------------------------------------------------
-    # 13. Print results
-    # --------------------------------------------------------
-
     print("\n")
     print("=" * 60)
     print("BiLSTM TEST RESULTS")
@@ -328,11 +284,6 @@ def main():
     print(
         f"\nResults saved to: {RESULTS_PATH}"
     )
-
-    # --------------------------------------------------------
-    # 14. Confusion matrix
-    # --------------------------------------------------------
-
     matrix = confusion_matrix(
         all_labels,
         all_predictions
@@ -349,8 +300,6 @@ def main():
     plt.savefig("./results/bilstm_confusion_matrix.png", dpi=300) 
     plt.close() 
     print("Confusion matrix saved to: ./results/bilstm_confusion_matrix.png")
-
-    print("\nEvaluation complete!")
 
 
 if __name__ == "__main__":

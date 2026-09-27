@@ -1,3 +1,18 @@
+"""
+Vocabulary for BiLSTM Text Classification
+
+This file defines the vocabulary used to convert AG News text into
+integer token IDs that can be processed by the BiLSTM model.
+
+The vocabulary is built from the training data using a minimum
+frequency threshold. It includes special tokens for padding and
+unknown words. Text is tokenized using lowercase whitespace
+tokenization, and unseen words are mapped to the <UNK> token.
+
+The vocabulary is used by the AGNewsDataset to convert text into
+sequences of indices before they are passed to the BiLSTM.
+"""
+
 from collections import Counter
 
 

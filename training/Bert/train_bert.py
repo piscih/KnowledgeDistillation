@@ -1,3 +1,19 @@
+"""
+BERT Teacher Training
+
+This file fine-tunes a pretrained BERT-base-uncased model for
+four-class text classification on the AG News dataset.
+
+The original AG News training set is split into 90% training and
+10% validation data using a fixed random seed. The original AG News
+test set is kept untouched and is evaluated separately later.
+
+After training, the best BERT model is selected based on validation
+loss and saved to ./models/bert_teacher. The trained teacher is
+later used to generate predictions (logits) for Knowledge
+Distillation of the BiLSTM student model.
+"""
+
 import numpy as np
 import torch
 from datasets import load_dataset
@@ -16,10 +32,6 @@ NUM_LABELS = 4
 
 
 def main():
-
-    # --------------------------------------------------
-    # 1. Check device
-    # --------------------------------------------------
     if torch.backends.mps.is_available():
         device = torch.device("mps")
     elif torch.cuda.is_available():
@@ -28,19 +40,10 @@ def main():
         device = torch.device("cpu")
 
     print("Using device:", device)
-
-    # --------------------------------------------------
-    # 2. Load AG News
-    # --------------------------------------------------
     dataset = load_dataset("fancyzhx/ag_news")
 
     print("\nOriginal dataset:")
     print(dataset)
-
-    # --------------------------------------------------
-    # 3. Split original training data
-    #    into train + validation
-    # --------------------------------------------------
     split_dataset = dataset["train"].train_test_split(
         test_size=0.1,
         seed=42,
@@ -56,10 +59,6 @@ def main():
     print("Training:", len(train_dataset))
     print("Validation:", len(validation_dataset))
     print("Test:", len(test_dataset))
-
-    # --------------------------------------------------
-    # 4. Load tokenizer
-    # --------------------------------------------------
     tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
 
     def tokenize_function(examples):
@@ -69,9 +68,6 @@ def main():
             max_length=MAX_LENGTH,
         )
 
-    # --------------------------------------------------
-    # 5. Tokenize datasets
-    # --------------------------------------------------
     train_dataset = train_dataset.map(
         tokenize_function,
         batched=True,
@@ -88,17 +84,10 @@ def main():
     )
 
     print("\nTokenization complete.")
-
-    # --------------------------------------------------
-    # 6. Data collator
-    # --------------------------------------------------
     data_collator = DataCollatorWithPadding(
         tokenizer=tokenizer
     )
 
-    # --------------------------------------------------
-    # 7. Load BERT
-    # --------------------------------------------------
     model = AutoModelForSequenceClassification.from_pretrained(
         MODEL_NAME,
         num_labels=NUM_LABELS,
@@ -107,9 +96,6 @@ def main():
     print("\nModel loaded successfully!")
     print("Number of parameters:", model.num_parameters())
 
-    # --------------------------------------------------
-    # 8. Metrics
-    # --------------------------------------------------
     def compute_metrics(eval_pred):
         logits, labels = eval_pred
 
@@ -121,9 +107,6 @@ def main():
             "accuracy": accuracy,
         }
 
-    # --------------------------------------------------
-    # 9. Training arguments
-    # --------------------------------------------------
     training_args = TrainingArguments(
         output_dir="./results/bert_teacher",
 
@@ -135,16 +118,13 @@ def main():
         learning_rate=2e-5,
         weight_decay=0.01,
 
-        # Evaluate on validation set
         eval_strategy="epoch",
 
-        # Save checkpoint after every epoch
         save_strategy="epoch",
 
         logging_strategy="steps",
         logging_steps=100,
 
-        # Select best model based on validation loss
         load_best_model_at_end=True,
 
         metric_for_best_model="eval_loss",
@@ -153,9 +133,6 @@ def main():
         report_to="none",
     )
 
-    # --------------------------------------------------
-    # 10. Create Trainer
-    # --------------------------------------------------
     trainer = Trainer(
         model=model,
         args=training_args,
@@ -167,19 +144,12 @@ def main():
         data_collator=data_collator,
     )
 
-    print("\nTrainer created successfully!")
-
-    # --------------------------------------------------
-    # 11. Train
-    # --------------------------------------------------
-    print("\nStarting BERT teacher training...")
+    print("\nTrainer created")
+    print("\nStarting BERT teacher training")
 
     trainer.train()
 
-    # --------------------------------------------------
-    # 12. Evaluate on validation set
-    # --------------------------------------------------
-    print("\nEvaluating best model on validation set...")
+    print("\nEvaluating best model on val set")
 
     validation_results = trainer.evaluate(
         eval_dataset=validation_dataset
@@ -187,23 +157,12 @@ def main():
 
     print("\nValidation results:")
     print(validation_results)
-
-    # --------------------------------------------------
-    # 13. Save final best model
-    # --------------------------------------------------
-    print("\nSaving BERT teacher...")
+    print("\nSaving BERT teacher")
 
     trainer.save_model("./models/bert_teacher")
     tokenizer.save_pretrained("./models/bert_teacher")
 
-    print("BERT teacher saved successfully!")
-
-    # --------------------------------------------------
-    # IMPORTANT:
-    # The test set is NOT evaluated here.
-    #
-    # We will evaluate it later using test.py.
-    # --------------------------------------------------
+    print("BERT teacher saved successfully")
 
 
 if __name__ == "__main__":

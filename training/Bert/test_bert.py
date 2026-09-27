@@ -1,3 +1,20 @@
+"""
+BERT Teacher Evaluation
+
+This file evaluates the fine-tuned BERT teacher on the untouched
+AG News test set.
+
+The trained teacher and its tokenizer are loaded from
+./models/bert_teacher. Predictions are generated for all test
+examples, and the evaluation includes accuracy, macro-averaged
+precision, recall, F1 score, and per-class metrics for the four
+AG News categories.
+
+The resulting metrics are saved as a JSON file and are later used
+to compare the BERT teacher with the BiLSTM baseline and the
+Knowledge Distillation models.
+"""
+
 import json
 import numpy as np
 import torch
@@ -16,10 +33,6 @@ MAX_LENGTH = 128
 
 
 def main():
-
-    # --------------------------------------------------
-    # 1. Check device
-    # --------------------------------------------------
     if torch.backends.mps.is_available():
         device = torch.device("mps")
     elif torch.cuda.is_available():
@@ -28,11 +41,7 @@ def main():
         device = torch.device("cpu")
 
     print("Using device:", device)
-
-    # --------------------------------------------------
-    # 2. Load the saved fine-tuned BERT model
-    # --------------------------------------------------
-    print("\nLoading fine-tuned BERT model...")
+    print("\nLoading fine-tuned BERT model")
 
     tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
 
@@ -44,21 +53,13 @@ def main():
 
     print("Model loaded successfully!")
     print("Number of parameters:", model.num_parameters())
-
-    # --------------------------------------------------
-    # 3. Load AG News test set
-    # --------------------------------------------------
-    print("\nLoading AG News test dataset...")
+    print("\nLoading AG News test dataset")
 
     dataset = load_dataset("fancyzhx/ag_news")
 
     test_dataset = dataset["test"]
 
     print("Test examples:", len(test_dataset))
-
-    # --------------------------------------------------
-    # 4. Tokenize test data
-    # --------------------------------------------------
     def tokenize_function(examples):
         return tokenizer(
             examples["text"],
@@ -71,25 +72,14 @@ def main():
         batched=True,
     )
 
-    # --------------------------------------------------
-    # 5. Data collator
-    # --------------------------------------------------
     data_collator = DataCollatorWithPadding(
         tokenizer=tokenizer
     )
-
-    # --------------------------------------------------
-    # 6. Create Trainer
-    # --------------------------------------------------
     trainer = Trainer(
         model=model,
         processing_class=tokenizer,
         data_collator=data_collator,
     )
-
-    # --------------------------------------------------
-    # 7. Run predictions
-    # --------------------------------------------------
     print("\nRunning predictions on test set...")
 
     predictions = trainer.predict(test_dataset)
@@ -98,10 +88,6 @@ def main():
     labels = predictions.label_ids
 
     predicted_labels = np.argmax(logits, axis=-1)
-
-    # --------------------------------------------------
-    # 8. Calculate accuracy
-    # --------------------------------------------------
     accuracy = np.mean(predicted_labels == labels)
 
     print("\n" + "=" * 50)
@@ -111,9 +97,6 @@ def main():
     print(f"Test Accuracy: {accuracy:.4f}")
     print(f"Test Accuracy: {accuracy * 100:.2f}%")
 
-    # --------------------------------------------------
-    # 9. Calculate per-class metrics
-    # --------------------------------------------------
     class_names = [
         "World",
         "Sports",
@@ -169,9 +152,6 @@ def main():
         print(f"  Recall:    {recall:.4f}")
         print(f"  F1:        {f1:.4f}")
 
-    # --------------------------------------------------
-    # 10. Macro averages
-    # --------------------------------------------------
     macro_precision = np.mean([
         metrics[name]["precision"]
         for name in class_names
@@ -195,9 +175,6 @@ def main():
     print(f"Recall:    {macro_recall:.4f}")
     print(f"F1:        {macro_f1:.4f}")
 
-    # --------------------------------------------------
-    # 11. Save results
-    # --------------------------------------------------
     results = {
         "model": MODEL_PATH,
         "dataset": "fancyzhx/ag_news",
@@ -220,9 +197,7 @@ def main():
         json.dump(results, f, indent=2)
 
     print("\nResults saved to:")
-    print("./results/test_results.json")
-
-    print("\nTesting complete!")
+    print("./results/bert_test_results.json")
 
 
 if __name__ == "__main__":

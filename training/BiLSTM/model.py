@@ -1,3 +1,19 @@
+"""
+BiLSTM Text Classifier
+
+This file defines the bidirectional LSTM (BiLSTM) classifier used
+for AG News text classification.
+
+The model converts vocabulary indices into learned word embeddings,
+processes the sequences with a two-layer bidirectional LSTM, and
+uses the final forward and backward hidden states for classification
+into the four AG News categories.
+
+The same architecture is used for both the BiLSTM baseline, trained
+with hard labels, and the Knowledge Distillation student, trained
+with a combination of hard-label and teacher-guided losses.
+"""
+
 import torch
 import torch.nn as nn
 from torch.nn.utils.rnn import pack_padded_sequence
