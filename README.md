@@ -1,8 +1,8 @@
 # Knowledge Distillation from BERT to BiLSTM for AG News Classification
 
-This project investigates whether **Knowledge Distillation (KD)** can transfer useful information from a fine-tuned **BERT teacher** to a smaller **BiLSTM student** for AG news topic classification.
+This project investigates whether **Knowledge Distillation (KD)** can transfer useful information from a fine-tuned **BERT teacher** to a smaller **BiLSTM student** for AG News topic classification.
 
-The experiments use the AG News dataset and compare a supervised BiLSTM baseline with BiLSTM students trained using teacher-generated soft predictions at different distillation temperatures.
+The experiments use the AG News dataset and compare a supervised BiLSTM baseline with BiLSTM students trained using teacher-generated soft predictions under different distillation temperatures and loss-weight settings.
 
 ---
 
@@ -21,14 +21,23 @@ AG News
    │      └── Hard-label supervision
    │
    └── BiLSTM + Knowledge Distillation
-          ├── T = 2
-          ├── T = 4
-          └── T = 6
+          ├── T = 2, α = 0.5
+          ├── T = 4, α = 0.5
+          ├── T = 6, α = 0.5
+          ├── T = 2, α = 0.25
+          └── T = 2, α = 0.75
 ```
 
-The BiLSTM baseline and distilled students use the **same architecture, preprocessing, and training configuration**. The main difference is the training objective: the baseline uses ground-truth labels, while the distilled students additionally learn from the BERT teacher's soft predictions.
+The BiLSTM baseline and distilled students use the **same architecture, preprocessing, vocabulary, and training configuration**. The main difference is the training objective: the baseline uses ground-truth labels, while the distilled students additionally learn from the BERT teacher's soft predictions.
 
-The BERT teacher is trained first and then frozen. Its logits are precomputed and stored so that the teacher does not need to be evaluated during student training.
+The BERT teacher is trained first and then frozen. Its logits are precomputed and stored so that the teacher does not need to be evaluated repeatedly during student training.
+
+Two ablation experiments are conducted:
+
+* **Temperature ablation:** $T \in {2,4,6}$ with $\alpha=0.5$.
+* **Loss-weight ablation:** $\alpha \in {0.25,0.5,0.75}$ with $T=2$.
+
+The $\alpha=0.5$ configuration is shared between the two experiments.
 
 ---
 
@@ -93,29 +102,33 @@ The baseline is a two-layer bidirectional LSTM with:
 
 The distilled BiLSTM uses the **same architecture and training configuration** as the baseline.
 
-The training loss combines hard-label cross-entropy with KL-divergence between the teacher and student predictions.
+The training loss combines hard-label cross-entropy with KL divergence between the teacher and student predictions.
 
-The experiments evaluate:
-
-```text
-T = 2
-T = 4
-T = 6
-```
-
-with a loss weighting of:
+The main temperature experiment uses:
 
 ```text
-alpha = 0.5
+T = 2, α = 0.5
+T = 4, α = 0.5
+T = 6, α = 0.5
 ```
 
-Each temperature configuration is trained from a fresh BiLSTM initialization.
+A separate loss-weight experiment fixes the temperature at $T=2$ and evaluates:
+
+```text
+α = 0.25
+α = 0.50
+α = 0.75
+```
+
+Each experimental configuration is trained from a fresh BiLSTM initialization.
 
 ---
 
 ## 4. Results
 
 Performance is measured on the untouched AG News test set.
+
+### Temperature Ablation
 
 | Model             | Accuracy (%) | Macro F1 (%) |
 | ----------------- | -----------: | -----------: |
@@ -127,7 +140,19 @@ Performance is measured on the untouched AG News test set.
 
 Knowledge Distillation improves the BiLSTM baseline for all three tested temperatures.
 
-The $T=2$ student achieves the highest performance among the distilled models, improving accuracy from **90.86% to 92.63%**.
+The $T=2$ student achieves the highest performance among the distilled models, improving accuracy from **90.86% to 92.63%**, an absolute improvement of **1.77 percentage points**.
+
+### Alpha Ablation
+
+At fixed temperature $T=2$:
+
+| $\alpha$ | Accuracy (%) | Macro F1 (%) |
+| -------: | -----------: | -----------: |
+|     0.25 |        92.62 |        92.60 |
+|     0.50 |    **92.63** |    **92.62** |
+|     0.75 |        92.09 |        92.09 |
+
+The $\alpha=0.25$ and $\alpha=0.5$ configurations produce nearly identical performance, while increasing $\alpha$ to 0.75 results in lower performance under the evaluated settings.
 
 ### Per-Class F1
 
@@ -138,7 +163,9 @@ The $T=2$ student achieves the highest performance among the distilled models, i
 | Business | 91.66 |  87.88 |      89.52 |
 | Sci/Tech | 92.06 |  88.13 |      90.59 |
 
-The largest F1 improvement from Knowledge Distillation occurs for **Sci/Tech**, increasing by 2.46 percentage points compared with the BiLSTM baseline.
+The largest F1 improvement from Knowledge Distillation occurs for **Sci/Tech**, increasing from 88.13% to 90.59%, an improvement of **2.46 percentage points** over the BiLSTM baseline.
+
+The best distilled model recovers approximately **49.9% of the accuracy gap between the BiLSTM baseline and the BERT teacher**.
 
 ---
 
@@ -157,10 +184,19 @@ KnowledgeDistillation/
 │
 ├── results/
 │   ├── bert_confusion_matrix.png
+│   ├── bert_test_results.json
 │   ├── bilstm_confusion_matrix.png
+│   ├── bilstm_baseline_results.json
 │   ├── bilstm_kd2_confusion_matrix.png
+│   ├── bilstm_kd2_test_results.json
 │   ├── bilstm_kd4_confusion_matrix.png
+│   ├── bilstm_kd4_test_results.json
 │   ├── bilstm_kd6_confusion_matrix.png
+│   ├── bilstm_kd6_test_results.json
+│   ├── bilstm_kd2(0.25)_confusion_matrix.png
+│   ├── bilstm_kd2(0.25)_test_results.json
+│   ├── bilstm_kd2(0.75)_confusion_matrix.png
+│   ├── bilstm_kd2(0.75)_test_results.json
 │   └── plots/
 │       ├── model_comparison.png
 │       ├── per_class_f1_comparison.png
@@ -168,7 +204,7 @@ KnowledgeDistillation/
 │
 ├── training/
 │   ├── Bert/
-|.  |.  ├── bert_teacher.py
+│   │   ├── bert_teacher.py
 │   │   ├── train_bert.py
 │   │   └── test_bert.py
 │   │
@@ -234,13 +270,13 @@ python training/KD/precompute_teacher.py
 python training/BiLSTM/train.py
 ```
 
-### Train the KD student
+### Train the KD students
 
 ```bash
 python training/KD/train.py
 ```
 
-The KD training configuration can be used to train the three temperature settings: $T=2$, $T=4$, and $T=6$.
+The KD training configuration supports the temperature and loss-weight ablations described above. The temperature experiment evaluates $T=2,4,6$ with $\alpha=0.5$, while the alpha experiment evaluates $\alpha=0.25,0.5,0.75$ at $T=2$.
 
 ### Evaluate the models
 
@@ -256,7 +292,7 @@ python training/BiLSTM/evaluation_BiLSTM.py
 python training/KD/evaluation_KD.py
 ```
 
-The evaluation scripts produce a json  and confusion matrices.
+The evaluation scripts produce **JSON test-result files and confusion matrices**.
 
 ---
 
