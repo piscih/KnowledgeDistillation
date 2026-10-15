@@ -2,7 +2,7 @@
 
 This project investigates whether **Knowledge Distillation (KD)** can transfer useful information from a fine-tuned **BERT teacher** to a smaller **BiLSTM student** for AG News topic classification.
 
-The experiments use the AG News dataset and compare a supervised BiLSTM baseline with BiLSTM students trained using teacher-generated soft predictions under different distillation temperatures and loss-weight settings.
+The experiments use the AG News dataset and compare a supervised BiLSTM baseline with BiLSTM students trained using teacher-generated soft predictions under different distillation temperatures and loss-weight settings. The distillation configuration is selected on a held-out validation split, and the test set is used only to report final results.
 
 ---
 
@@ -34,10 +34,10 @@ The BERT teacher is trained first and then frozen. Its logits are precomputed an
 
 Two ablation experiments are conducted:
 
-* **Temperature ablation:** $T \in {2,4,6}$ with $\alpha=0.5$.
-* **Loss-weight ablation:** $\alpha \in {0.25,0.5,0.75}$ with $T=2$.
+* **Temperature ablation:** $T \in \{2, 4, 6\}$ with $\alpha = 0.5$.
+* **Loss-weight ablation:** $\alpha \in \{0.25, 0.5, 0.75\}$ with $T = 2$.
 
-The $\alpha=0.5$ configuration is shared between the two experiments.
+The $\alpha = 0.5$, $T = 2$ configuration is shared between the two experiments.
 
 ---
 
@@ -63,7 +63,7 @@ The four classes are:
 * Business
 * Sci/Tech
 
-The original test set is kept unchanged and is used only for final evaluation.
+The original test set is held out from training. Within each run, the best epoch is chosen by validation accuracy. The distillation settings ($T$, $\alpha$) are selected on the validation split as well (see Section 4); the test set is used only to report final results.
 
 ---
 
@@ -102,7 +102,13 @@ The baseline is a two-layer bidirectional LSTM with:
 
 The distilled BiLSTM uses the **same architecture and training configuration** as the baseline.
 
-The training loss combines hard-label cross-entropy with KL divergence between the teacher and student predictions.
+The training loss combines hard-label cross-entropy with the KL divergence between the teacher and student predictions, both softened with temperature $T$:
+
+$$
+\mathcal{L} = \alpha \cdot \mathrm{CE}(z_s, y) + (1 - \alpha) \cdot T^2 \cdot \mathrm{KL}\left(\mathrm{softmax}(z_t / T) \,\|\, \mathrm{softmax}(z_s / T)\right)
+$$
+
+where $z_s$ and $z_t$ are the student and teacher logits and $y$ is the ground-truth label.
 
 The main temperature experiment uses:
 
@@ -112,7 +118,7 @@ T = 4, α = 0.5
 T = 6, α = 0.5
 ```
 
-A separate loss-weight experiment fixes the temperature at $T=2$ and evaluates:
+A separate loss-weight experiment fixes the temperature at $T = 2$ and evaluates:
 
 ```text
 α = 0.25
@@ -126,46 +132,66 @@ Each experimental configuration is trained from a fresh BiLSTM initialization.
 
 ## 4. Results
 
-Performance is measured on the untouched AG News test set.
+### Model selection (validation split)
 
-### Temperature Ablation
+The distillation configuration was selected using accuracy on the 12,000-example validation split, without looking at the test set.
+
+| Configuration   | Validation accuracy (%) | Validation macro F1 (%) |
+| --------------- | ----------------------: | ----------------------: |
+| T=2, α=0.25     |                **92.73** |                **92.68** |
+| T=4, α=0.5      |                   92.60 |                   92.56 |
+| T=2, α=0.5      |                   92.47 |                   92.43 |
+| T=6, α=0.5      |                   92.43 |                   92.38 |
+| T=2, α=0.75     |                   92.43 |                   92.40 |
+
+The selected configuration is **T=2, α=0.25**. The validation scores of all five settings lie within about 0.3 percentage points of each other, which is close to the standard error of a 12,000-example validation set (about 0.25 pp). The ranking among distillation settings should therefore be read as indicative rather than conclusive.
+
+### Test results
+
+Performance is measured on the AG News test set (7,600 examples).
+
+#### Temperature ablation ($\alpha = 0.5$)
 
 | Model             | Accuracy (%) | Macro F1 (%) |
 | ----------------- | -----------: | -----------: |
 | BERT Teacher      |        94.41 |        94.40 |
 | BiLSTM Baseline   |        90.86 |        90.81 |
-| KD BiLSTM ($T=2$) |    **92.63** |    **92.62** |
+| KD BiLSTM ($T=2$) |        92.63 |        92.62 |
 | KD BiLSTM ($T=4$) |        92.09 |        92.10 |
 | KD BiLSTM ($T=6$) |        91.97 |        91.95 |
 
 Knowledge Distillation improves the BiLSTM baseline for all three tested temperatures.
 
-The $T=2$ student achieves the highest performance among the distilled models, improving accuracy from **90.86% to 92.63%**, an absolute improvement of **1.77 percentage points**.
-
-### Alpha Ablation
-
-At fixed temperature $T=2$:
+#### Loss-weight ablation ($T = 2$)
 
 | $\alpha$ | Accuracy (%) | Macro F1 (%) |
 | -------: | -----------: | -----------: |
-|     0.25 |        92.62 |        92.60 |
-|     0.50 |    **92.63** |    **92.62** |
+|     0.25 |    **92.62** |    **92.60** |
+|     0.50 |        92.63 |        92.62 |
 |     0.75 |        92.09 |        92.09 |
 
-The $\alpha=0.25$ and $\alpha=0.5$ configurations produce nearly identical performance, while increasing $\alpha$ to 0.75 results in lower performance under the evaluated settings.
+The bolded row is the configuration selected on the validation split. The $\alpha = 0.25$ and $\alpha = 0.5$ configurations produce nearly identical test performance, while $\alpha = 0.75$ is lower in this run.
 
-### Per-Class F1
+#### Headline result
 
-| Class    |  BERT | BiLSTM | KD ($T=2$) |
-| -------- | ----: | -----: | ---------: |
-| World    | 95.36 |  91.19 |      93.46 |
-| Sports   | 98.54 |  96.06 |      96.91 |
-| Business | 91.66 |  87.88 |      89.52 |
-| Sci/Tech | 92.06 |  88.13 |      90.59 |
+The validation-selected student ($T=2$, $\alpha=0.25$) improves accuracy from **90.86% to 92.62%**, an absolute gain of **1.76 percentage points**, and macro F1 from **90.81% to 92.60%**. It recovers approximately **49.6% of the accuracy gap between the BiLSTM baseline and the BERT teacher**. All five distilled students outperform the baseline (91.97% to 92.63% accuracy versus 90.86%), so the improvement does not depend on which configuration is selected.
 
-The largest F1 improvement from Knowledge Distillation occurs for **Sci/Tech**, increasing from 88.13% to 90.59%, an improvement of **2.46 percentage points** over the BiLSTM baseline.
+#### Per-class F1
 
-The best distilled model recovers approximately **49.9% of the accuracy gap between the BiLSTM baseline and the BERT teacher**.
+| Class    |  BERT | BiLSTM | KD ($T=2$, $\alpha=0.5$) |
+| -------- | ----: | -----: | -----------------------: |
+| World    | 95.36 |  91.19 |                    93.46 |
+| Sports   | 98.54 |  96.06 |                    96.91 |
+| Business | 91.66 |  87.88 |                    89.52 |
+| Sci/Tech | 92.06 |  88.13 |                    90.59 |
+
+The per-class table shows the $T=2$, $\alpha=0.5$ student. Per-class results for every configuration, including the selected one, are stored in `results/`. For this student, the largest F1 improvement occurs for **Sci/Tech**, from 88.13% to 90.59% (+2.46 percentage points).
+
+### Limitations
+
+* **Single seed.** Every configuration was trained once. Differences between distillation settings (a few tenths of a percentage point) are within the likely run-to-run variation, so only the gap between the baseline and the distilled students should be treated as a robust finding.
+* **Test-set exposure.** Early experiments looked at test results for all configurations before the validation-based selection was done. The selection itself uses only validation data, but the test set is not strictly untouched.
+* **No efficiency measurements.** The repository does not currently report parameter counts or inference speed for BERT versus the BiLSTM.
 
 ---
 
@@ -197,6 +223,7 @@ KnowledgeDistillation/
 │   ├── bilstm_kd2(0.25)_test_results.json
 │   ├── bilstm_kd2(0.75)_confusion_matrix.png
 │   ├── bilstm_kd2(0.75)_test_results.json
+│   ├── kd_validation_selection.json
 │   └── plots/
 │       ├── model_comparison.png
 │       ├── per_class_f1_comparison.png
@@ -219,6 +246,7 @@ KnowledgeDistillation/
 │       ├── dataset.py
 │       ├── evaluation_KD.py
 │       ├── precompute_teacher.py
+│       ├── select_on_validation.py
 │       └── train.py
 │
 ├── .gitignore
@@ -231,6 +259,8 @@ Large model checkpoints, optimizer states, virtual environments, and Python cach
 ---
 
 ## 6. How to Run
+
+Run all commands from the repository root.
 
 ### Clone the repository
 
@@ -276,9 +306,17 @@ python training/BiLSTM/train.py
 python training/KD/train.py
 ```
 
-The KD training configuration supports the temperature and loss-weight ablations described above. The temperature experiment evaluates $T=2,4,6$ with $\alpha=0.5$, while the alpha experiment evaluates $\alpha=0.25,0.5,0.75$ at $T=2$.
+The KD training configuration supports the temperature and loss-weight ablations described above. The temperature experiment evaluates $T = 2, 4, 6$ with $\alpha = 0.5$, while the loss-weight experiment evaluates $\alpha = 0.25, 0.5, 0.75$ at $T = 2$.
 
-### Evaluate the models
+### Select the KD configuration on the validation split
+
+```bash
+python -m training.KD.select_on_validation
+```
+
+This evaluates every trained KD checkpoint on the validation split only and writes the ranking to `results/kd_validation_selection.json`. It never loads the test set.
+
+### Evaluate the models on the test set
 
 ```bash
 python training/Bert/test_bert.py
