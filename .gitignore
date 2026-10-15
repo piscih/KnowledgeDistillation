@@ -56,3 +56,6 @@ build/results/bilstm_kd2_*
 results/bilstm_kd4_*
 results/bilstm_kd6_*
 results/bilstm_kd2(0.75)_*
+
+results/bilstm_kd2_test_results.json
+results/bilstm_kd2_confusion_matrix.png
