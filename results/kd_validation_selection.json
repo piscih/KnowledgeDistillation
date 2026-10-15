@@ -1,0 +1,30 @@
+{
+  "selected": "T=2, alpha=0.25",
+  "results": {
+    "T=2, alpha=0.5": {
+      "checkpoint": "./models/BiLSTM_KD/bilstm_kd2.pt",
+      "val_accuracy": 0.9246666666666666,
+      "val_macro_f1": 0.9243110760286818
+    },
+    "T=4, alpha=0.5": {
+      "checkpoint": "./models/BiLSTM_KD/bilstm_kd.pt",
+      "val_accuracy": 0.926,
+      "val_macro_f1": 0.9256497515951527
+    },
+    "T=6, alpha=0.5": {
+      "checkpoint": "./models/BiLSTM_KD/bilstm_kd6.pt",
+      "val_accuracy": 0.92425,
+      "val_macro_f1": 0.9237903267432931
+    },
+    "T=2, alpha=0.25": {
+      "checkpoint": "./models/BiLSTM_KD/bilstm_kd2(0.25).pt",
+      "val_accuracy": 0.92725,
+      "val_macro_f1": 0.9268167290762823
+    },
+    "T=2, alpha=0.75": {
+      "checkpoint": "./models/BiLSTM_KD/bilstm_kd2(0.75).pt",
+      "val_accuracy": 0.92425,
+      "val_macro_f1": 0.9239695919629373
+    }
+  }
+}

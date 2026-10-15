@@ -20,7 +20,7 @@ VALID_LOGITS_PATH = "./models/BERT_teacher_logits_valid.pt"
 
 MODEL_NAME = "google-bert/bert-base-uncased"
 
-STUDENT_PATH = "./models/BiLSTM_KD/bilstm_kd6.pt"
+STUDENT_PATH = "./models/BiLSTM_KD/bilstm_kd2.pt"
 
 MAX_LENGTH = 128
 
@@ -38,7 +38,7 @@ NUM_CLASSES = 4
 DROPOUT = 0.3
 
 # Knowledge Distillation hyperparameters
-TEMPERATURE = 6.0
+TEMPERATURE = 2.0
 ALPHA = 0.5
 
 

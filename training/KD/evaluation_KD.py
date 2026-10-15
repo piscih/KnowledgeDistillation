@@ -25,7 +25,7 @@ import matplotlib.pyplot as plt
 # Configuration
 # ============================================================
 
-MODEL_PATH = "./models/BiLSTM_KD/bilstm_kd.pt"
+MODEL_PATH = "./models/BiLSTM_KD/bilstm_kd2.pt"
 
 BATCH_SIZE = 64
 MIN_FREQ = 2
@@ -305,7 +305,7 @@ def main():
         },
     }
 
-    output_path = "./results/bilstm_kd4_test_results.json"
+    output_path = "./results/bilstm_kd2_test_results.json"
 
     with open(output_path, "w") as f:
         json.dump(
@@ -351,7 +351,7 @@ def main():
     plt.tight_layout()
 
     confusion_matrix_path = (
-        "./results/bilstm_kd4_confusion_matrix.png"
+        "./results/bilstm_kd2_confusion_matrix.png"
     )
 
     plt.savefig(
