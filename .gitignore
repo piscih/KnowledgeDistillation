@@ -52,4 +52,7 @@ logs/
 # =========================
 *.egg-info/
 dist/
-build/
+build/results/bilstm_kd2_*
+results/bilstm_kd4_*
+results/bilstm_kd6_*
+results/bilstm_kd2(0.75)_*
