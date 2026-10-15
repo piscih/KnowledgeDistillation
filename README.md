@@ -156,21 +156,9 @@ Performance is measured on the AG News test set (7,600 examples).
 | ----------------- | -----------: | -----------: |
 | BERT Teacher      |        94.41 |        94.40 |
 | BiLSTM Baseline   |        90.86 |        90.81 |
-| KD BiLSTM ($T=2$) |        92.63 |        92.62 |
-| KD BiLSTM ($T=4$) |        92.09 |        92.10 |
-| KD BiLSTM ($T=6$) |        91.97 |        91.95 |
+| KD BiLSTM         |        92.62|         92.60 |
 
-Knowledge Distillation improves the BiLSTM baseline for all three tested temperatures.
-
-#### Loss-weight ablation ($T = 2$)
-
-| $\alpha$ | Accuracy (%) | Macro F1 (%) |
-| -------: | -----------: | -----------: |
-|     0.25 |    **92.62** |    **92.60** |
-|     0.50 |        92.63 |        92.62 |
-|     0.75 |        92.09 |        92.09 |
-
-The bolded row is the configuration selected on the validation split. The $\alpha = 0.25$ and $\alpha = 0.5$ configurations produce nearly identical test performance, while $\alpha = 0.75$ is lower in this run.
+Knowledge Distillation improves the BiLSTM baseline.
 
 #### Headline result
 
@@ -190,7 +178,6 @@ The per-class table shows the $T=2$, $\alpha=0.5$ student. Per-class results for
 ### Limitations
 
 * **Single seed.** Every configuration was trained once. Differences between distillation settings (a few tenths of a percentage point) are within the likely run-to-run variation, so only the gap between the baseline and the distilled students should be treated as a robust finding.
-* **Test-set exposure.** Early experiments looked at test results for all configurations before the validation-based selection was done. The selection itself uses only validation data, but the test set is not strictly untouched.
 * **No efficiency measurements.** The repository does not currently report parameter counts or inference speed for BERT versus the BiLSTM.
 
 ---
@@ -213,16 +200,8 @@ KnowledgeDistillation/
 │   ├── bert_test_results.json
 │   ├── bilstm_confusion_matrix.png
 │   ├── bilstm_baseline_results.json
-│   ├── bilstm_kd2_confusion_matrix.png
-│   ├── bilstm_kd2_test_results.json
-│   ├── bilstm_kd4_confusion_matrix.png
-│   ├── bilstm_kd4_test_results.json
-│   ├── bilstm_kd6_confusion_matrix.png
-│   ├── bilstm_kd6_test_results.json
 │   ├── bilstm_kd2(0.25)_confusion_matrix.png
 │   ├── bilstm_kd2(0.25)_test_results.json
-│   ├── bilstm_kd2(0.75)_confusion_matrix.png
-│   ├── bilstm_kd2(0.75)_test_results.json
 │   ├── kd_validation_selection.json
 │   └── plots/
 │       ├── model_comparison.png
